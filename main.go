@@ -3,60 +3,29 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/devinmiller/web-dev-with-go/controllers"
+	"github.com/devinmiller/web-dev-with-go/views"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, "<h1>Welcome to my humble little website</h1>")
-}
-
-func contactHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, "<h1>Contact Page</h1><p>Don't contact me</p>")
-}
-
-func faqHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, `<h1>FAQ</h1>
-<ul>
-	<li>Q. Can you...</li>
-	<li>A. No</li>
-</ul>
-`)
-}
-
-func pathHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/":
-		homeHandler(w, r)
-	case "/contact":
-		contactHandler(w, r)
-	case "/faq":
-		faqHandler(w, r)
-	default:
-		// TODO: handle page not found error
-		http.Error(w, "Page not found", http.StatusNotFound)
-	}
-}
-
-type Router struct{}
-
-func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/":
-		homeHandler(w, r)
-	case "/contact":
-		contactHandler(w, r)
-	default:
-		// TODO: handle page not found error
-		http.Error(w, "Page not found", http.StatusNotFound)
-	}
-}
 
 func main() {
 	fmt.Println("Starting server on :3000...")
 
-	err := http.ListenAndServe(":3000", http.HandlerFunc(pathHandler))
+	r := chi.NewRouter()
+
+	r.Use(middleware.Logger)
+
+	r.Get("/", controllers.StaticHandler(views.Must(views.Parse("home.html"))))
+	r.Get("/contact", controllers.StaticHandler(views.Must(views.Parse("contact.html"))))
+	r.Get("/faq", controllers.StaticHandler(views.Must(views.Parse("faq.html"))))
+
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Page not found", http.StatusNotFound)
+	})
+
+	err := http.ListenAndServe(":3000", r)
 
 	if err != nil {
 		panic(err)
