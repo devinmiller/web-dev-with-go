@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/devinmiller/web-dev-with-go/controllers"
+	"github.com/devinmiller/web-dev-with-go/templates"
 	"github.com/devinmiller/web-dev-with-go/views"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,7 +18,15 @@ func main() {
 
 	r.Use(middleware.Logger)
 
-	r.Get("/", controllers.StaticHandler(views.Must(views.Parse("home.html"))))
+	tm, err := views.NewTemplateManager(templates.FS, ".", ".html")
+
+	// error loading templates
+	if err != nil {
+		panic(err)
+	}
+
+	r.Get("/", controllers.RenderHandler(tm, "home"))
+	// r.Get("/", controllers.StaticHandler(views.Must(views.Parse("home.html"))))
 	r.Get("/contact", controllers.StaticHandler(views.Must(views.Parse("contact.html"))))
 	r.Get("/faq", controllers.StaticHandler(views.Must(views.Parse("faq.html"))))
 
@@ -25,7 +34,7 @@ func main() {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})
 
-	err := http.ListenAndServe(":3000", r)
+	err = http.ListenAndServe(":3000", r)
 
 	if err != nil {
 		panic(err)
