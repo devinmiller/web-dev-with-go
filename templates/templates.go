@@ -3,6 +3,6 @@ package templates
 import "embed"
 
 var (
-	//go:embed *.html
+	//go:embed layouts *.html
 	FS embed.FS
 )

@@ -17,14 +17,17 @@ type TemplateManager struct {
 	dir string
 	ext string
 
+	layoutDir string
+
 	templates map[string]*template.Template
 }
 
-func NewTemplateManager(fs embed.FS, dir string, ext string) (tmpl *TemplateManager, err error) {
+func NewTemplateManager(fs embed.FS, dir string, layoutDir string, ext string) (tmpl *TemplateManager, err error) {
 	tmpl = &TemplateManager{
-		fs:  fs,
-		dir: dir,
-		ext: ext,
+		fs:        fs,
+		dir:       dir,
+		ext:       ext,
+		layoutDir: layoutDir,
 	}
 
 	tmpl.templates = make(map[string]*template.Template)
@@ -64,25 +67,25 @@ func (t *TemplateManager) Load() (err error) {
 			return
 		}
 
-		// get relative path as name
-		var name string
-		if name, err = filepath.Rel(t.dir, path); err != nil {
+		// skip files in the layout directory
+		if filepath.Dir(path) == t.layoutDir {
+			return
+		}
+
+		// get relative path
+		var rel string
+		if rel, err = filepath.Rel(t.dir, path); err != nil {
 			return err
 		}
 
-		// trim extension from name
-		name = strings.TrimSuffix(name, t.ext)
+		// trim extension from path
+		rel = strings.TrimSuffix(rel, t.ext)
 
-		var (
-			nt = template.New(name)
-			b  []byte
-		)
+		// create a new template
+		var nt = template.New(rel)
 
-		if b, err = t.fs.ReadFile(path); err != nil {
-			return err
-		}
-
-		tmpl, err := nt.Parse(string(b))
+		// parse the template and layouts
+		tmpl, err := nt.ParseFS(t.fs, path, t.layoutDir+"/*"+t.ext)
 
 		if err != nil {
 			return fmt.Errorf("error parsing template: %w", err)
@@ -110,7 +113,7 @@ func (t *TemplateManager) Render(w io.Writer, name string, data interface{}) (er
 
 	buf := bytes.Buffer{}
 
-	if err = tmpl.Execute(&buf, data); err != nil {
+	if err = tmpl.ExecuteTemplate(&buf, tmpl.Name()+t.ext, data); err != nil {
 		return fmt.Errorf("error executing template: %w", err)
 	}
 

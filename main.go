@@ -18,17 +18,16 @@ func main() {
 
 	r.Use(middleware.Logger)
 
-	tm, err := views.NewTemplateManager(templates.FS, ".", ".html")
+	tm, err := views.NewTemplateManager(templates.FS, ".", "layouts", ".html")
 
 	// error loading templates
 	if err != nil {
 		panic(err)
 	}
 
-	r.Get("/", controllers.RenderHandler(tm, "home"))
-	// r.Get("/", controllers.StaticHandler(views.Must(views.Parse("home.html"))))
-	r.Get("/contact", controllers.StaticHandler(views.Must(views.Parse("contact.html"))))
-	r.Get("/faq", controllers.StaticHandler(views.Must(views.Parse("faq.html"))))
+	r.Get("/", controllers.RenderHandler(tm, "home", nil))
+	r.Get("/contact", controllers.RenderHandler(tm, "contact", nil))
+	r.Get("/faq", controllers.FAQ(tm))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)

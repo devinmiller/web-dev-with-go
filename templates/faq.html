@@ -1,5 +1,21 @@
-<h1>FAQ</h1>
-<ul>
-	<li>Q. Can you...</li>
-	<li>A. No</li>
-</ul>
+
+
+{{template "base" .}}
+
+{{define "title"}}
+    FAQ
+{{end}}
+
+{{define "main"}}
+    <h1>FAQ</h1>
+    <dl>
+        {{range .}}
+            {{template "qa" .}}
+        {{end}}
+    </dl>
+{{end}}
+
+{{define "qa"}}
+    <dt>{{.Question}}</dt>
+    <dd>{{.Answer}}</dd>
+{{end}}
