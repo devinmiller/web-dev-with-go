@@ -25,9 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	r.Get("/", controllers.RenderHandler(tm, "home", nil))
-	r.Get("/contact", controllers.RenderHandler(tm, "contact", nil))
-	r.Get("/faq", controllers.FAQ(tm))
+	r.Mount("/", controllers.HomeController{}.Routes(tm))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)

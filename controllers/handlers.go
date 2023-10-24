@@ -12,29 +12,11 @@ func StaticHandler(tmpl views.Template) http.HandlerFunc {
 	}
 }
 
-func RenderHandler(tm *views.TemplateManager, name string, data interface{}) http.HandlerFunc {
+func TemplateHandler(tm *views.TemplateManager, name string, data interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := tm.Render(w, name, data); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
-}
-
-func FAQ(tm *views.TemplateManager) http.HandlerFunc {
-	questions := []struct {
-		Question string
-		Answer   string
-	}{
-		{
-			Question: "Can you...",
-			Answer:   "No",
-		},
-		{
-			Question: "But...",
-			Answer:   "Still no",
-		},
-	}
-
-	return RenderHandler(tm, "faq", questions)
 }

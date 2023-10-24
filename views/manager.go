@@ -57,6 +57,8 @@ func (t *TemplateManager) Load() (err error) {
 			return err
 		}
 
+		fmt.Println(path)
+
 		var info os.FileInfo
 		if info, err = dir.Info(); err != nil {
 			return err
@@ -82,7 +84,7 @@ func (t *TemplateManager) Load() (err error) {
 		rel = strings.TrimSuffix(rel, t.ext)
 
 		// create a new template
-		var nt = template.New(rel)
+		var nt = template.New(filepath.Base(path))
 
 		// parse the template and layouts
 		tmpl, err := nt.ParseFS(t.fs, path, t.layoutDir+"/*"+t.ext)
@@ -91,7 +93,7 @@ func (t *TemplateManager) Load() (err error) {
 			return fmt.Errorf("error parsing template: %w", err)
 		}
 
-		t.templates[tmpl.Name()] = tmpl
+		t.templates[rel] = tmpl
 
 		return err
 	}
@@ -103,17 +105,27 @@ func (t *TemplateManager) Load() (err error) {
 	return
 }
 
-func (t *TemplateManager) Render(w io.Writer, name string, data interface{}) (err error) {
-
+func (t *TemplateManager) Template(name string) (tmpl *template.Template, err error) {
 	tmpl, exists := t.templates[name]
 
 	if !exists {
-		return fmt.Errorf("template not found: %v", name)
+		return nil, fmt.Errorf("template not found: %v", name)
+	}
+
+	return tmpl.Clone()
+}
+
+func (t *TemplateManager) Render(w io.Writer, name string, data interface{}) (err error) {
+
+	tmpl, err := t.Template(name)
+
+	if err != nil {
+		return err
 	}
 
 	buf := bytes.Buffer{}
 
-	if err = tmpl.ExecuteTemplate(&buf, tmpl.Name()+t.ext, data); err != nil {
+	if err = tmpl.ExecuteTemplate(&buf, tmpl.Name(), data); err != nil {
 		return fmt.Errorf("error executing template: %w", err)
 	}
 
