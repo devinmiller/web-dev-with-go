@@ -30,6 +30,7 @@ func (c HomeController) Routes(tm *views.TemplateManager) chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/", TemplateHandler(tm, "home/index", nil))
+	r.Get("/signin", TemplateHandler(tm, "home/signin", nil))
 	r.Get("/contact", TemplateHandler(tm, "home/contact", nil))
 	r.Get("/faq", c.FAQ(tm))
 

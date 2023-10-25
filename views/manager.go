@@ -3,6 +3,7 @@ package views
 import (
 	"bytes"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -52,12 +53,16 @@ func (t *TemplateManager) Ext() string {
 func (t *TemplateManager) Load() (err error) {
 	fmt.Println("Loading templates...")
 
+	var assetManifest map[string]string
+	// Load asset manifest
+	manifestFile, _ := os.ReadFile("dist/asset-manifest.json")
+
+	json.Unmarshal(manifestFile, &assetManifest)
+
 	var walkDir = func(path string, dir fs.DirEntry, err error) (_ error) {
 		if err != nil {
 			return err
 		}
-
-		fmt.Println(path)
 
 		var info os.FileInfo
 		if info, err = dir.Info(); err != nil {
@@ -84,7 +89,14 @@ func (t *TemplateManager) Load() (err error) {
 		rel = strings.TrimSuffix(rel, t.ext)
 
 		// create a new template
-		var nt = template.New(filepath.Base(path))
+		var nt = template.New(filepath.Base(path)).Funcs(template.FuncMap{
+			"assetPath": func(name string) string {
+				if path, ok := assetManifest[name]; ok {
+					return "/static/" + path
+				}
+				return "/static/" + name // Fallback to non-hashed name
+			},
+		})
 
 		// parse the template and layouts
 		tmpl, err := nt.ParseFS(t.fs, path, t.layoutDir+"/*"+t.ext)

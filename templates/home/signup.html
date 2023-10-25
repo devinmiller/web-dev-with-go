@@ -1,0 +1,27 @@
+{{template "base" .}}
+
+{{define "title"}}
+    Sign Up
+{{end}}
+
+{{define "main"}}
+    <div class="form__wrapper">
+        <div class="form__header">
+            Flashy Sign In
+        </div>
+        <form>
+            <div class="form__input">
+                <label for="email" class="text_small">Email</label>
+                <input name="email" id="email" type="email" placeholder="name@email.com" autocomplete="email" required />
+            </div>
+            <div class="form__input">
+                <label for="password" class="text_small">Password</label>
+                <input name="password" id="password" type="password" autocomplete="password" required />
+            </div>
+
+            <button>Register</button>
+
+        <form>
+        
+    </div>
+{{end}}

@@ -27,6 +27,9 @@ func main() {
 
 	r.Mount("/", controllers.HomeController{}.Routes(tm))
 
+	// Set up static file server for assets
+	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("dist"))))
+
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})
