@@ -21,6 +21,9 @@
     --h3: calc(var(--h4) * var(--scale));
     --h2: calc(var(--h3) * var(--scale));
     --h1: calc(var(--h2) * var(--scale));
+
+    --small: calc(var(--base-size) / var(--scale));
+    --xsmall: calc(var(--small) / var(--scale));
   
     --font-family: "Merriweather", serif;
     --font-weight: 300;
@@ -71,38 +74,15 @@
     font-size: calc(var(--base-size) / var(--scale));
   }
 
+  button {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background-color: unset;
+  }
+
   .content {
     padding: 2rem;
   }
 
-  .form__wrapper {
-    background-color: var(--color-secondary);
-    border-radius: 10px;
-    color: var(--color-text-on-secondary);
-    padding: 2em;
-  }
-
-  .form__header {
-    font-size: var(--h3);
-    font-weight: bold;
-    text-align: center;
-  }
-
-  .form__input {
-    margin: 1rem 0;
-  }
-
-  .form__input > label {
-    
-    color: var(--color-label-on-secondary);
-    font-weight: bold;
-    text-transform: uppercase;
-  }
-
-  .form__input > input {
-    border-width: 1px;
-    border-color: var(--color-label-on-secondary);
-    border-radius: 5px;
-    padding: .5rem;
-    width: 100%;
-  }
+  @import "./forms.css"

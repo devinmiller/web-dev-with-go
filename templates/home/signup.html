@@ -7,9 +7,17 @@
 {{define "main"}}
     <div class="form__wrapper">
         <div class="form__header">
-            Flashy Sign In
+            Flashy Sign Up
         </div>
         <form>
+            <div class="form__input">
+                <label for="firstName" class="text_small">First Name</label>
+                <input name="firstName" id="firstName" type="text" placeholder="first name" autocomplete="firstName" required />
+            </div>
+            <div class="form__input">
+                <label for="lastName" class="text_small">Last Name</label>
+                <input name="lastName" id="lastName" type="text" placeholder="last name" autocomplete="lastName" required />
+            </div>
             <div class="form__input">
                 <label for="email" class="text_small">Email</label>
                 <input name="email" id="email" type="email" placeholder="name@email.com" autocomplete="email" required />
@@ -19,8 +27,7 @@
                 <input name="password" id="password" type="password" autocomplete="password" required />
             </div>
 
-            <button>Register</button>
-
+            <button class="form__button">Register</button>
         <form>
         
     </div>

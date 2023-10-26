@@ -30,11 +30,25 @@ func (c HomeController) Routes(tm *views.TemplateManager) chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/", TemplateHandler(tm, "home/index", nil))
-	r.Get("/signin", TemplateHandler(tm, "home/signin", nil))
+
+	r.Get("/signin", c.GetSignIn(tm))
+	r.Post("/signin", c.PostSignIn(tm))
+
+	r.Get("/signup", TemplateHandler(tm, "home/signup", nil))
 	r.Get("/contact", TemplateHandler(tm, "home/contact", nil))
 	r.Get("/faq", c.FAQ(tm))
 
 	return r
+}
+
+func (c HomeController) GetSignIn(tm *views.TemplateManager) http.HandlerFunc {
+	return TemplateHandler(tm, "home/signin", nil)
+}
+
+func (c HomeController) PostSignIn(tm *views.TemplateManager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
 }
 
 func (c HomeController) FAQ(tm *views.TemplateManager) http.HandlerFunc {
