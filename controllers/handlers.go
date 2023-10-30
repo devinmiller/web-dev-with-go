@@ -6,9 +6,17 @@ import (
 	"github.com/devinmiller/web-dev-with-go/views"
 )
 
-func StaticHandler(tmpl views.Template) http.HandlerFunc {
+func FormHandler(f func(map[string][]string) http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl.Execute(w, nil)
+		err := r.ParseForm()
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+
+		handler := f(r.PostForm)
+
+		handler(w, r)
 	}
 }
 

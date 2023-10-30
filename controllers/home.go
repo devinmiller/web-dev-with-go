@@ -2,52 +2,78 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 
-	"github.com/devinmiller/web-dev-with-go/templates"
+	"github.com/devinmiller/web-dev-with-go/controllers"
+	models "github.com/devinmiller/web-dev-with-go/models/data"
+	"github.com/devinmiller/web-dev-with-go/services"
 	"github.com/devinmiller/web-dev-with-go/views"
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type HomeController struct {
-	tm *views.TemplateManager
+	tm  *views.TemplateManager
+	svc services.UserService
 }
 
-func NewHomeController() (controller HomeController) {
-	tm, err := views.NewTemplateManager(templates.FS, ".", "layout", ".html")
-
-	if err != nil {
-		panic(err)
-	}
+func NewHomeController(
+	tm *views.TemplateManager,
+	svc services.UserService) HomeController {
 
 	c := HomeController{
-		tm: tm,
+		tm:  tm,
+		svc: svc,
 	}
 
 	return c
 }
 
-func (c HomeController) Routes(tm *views.TemplateManager) chi.Router {
+func (c HomeController) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", TemplateHandler(tm, "home/index", nil))
+	r.Get("/", c.GetIndex())
 
-	r.Get("/signin", c.GetSignIn(tm))
-	r.Post("/signin", c.PostSignIn(tm))
+	r.Get("/signin", c.GetSignIn())
+	r.Get("/signup", c.GetSignUp())
 
-	r.Get("/signup", TemplateHandler(tm, "home/signup", nil))
-	r.Get("/contact", TemplateHandler(tm, "home/contact", nil))
-	r.Get("/faq", c.FAQ(tm))
+	r.With(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			next.ServeHTTP(w, r)
+		})
+	}).Post("/signup", controllers.FormHandler(c.PostSignUp))
+
+	r.Get("/contact", TemplateHandler(c.tm, "home/contact", nil))
+	r.Get("/faq", c.FAQ(c.tm))
 
 	return r
 }
 
-func (c HomeController) GetSignIn(tm *views.TemplateManager) http.HandlerFunc {
-	return TemplateHandler(tm, "home/signin", nil)
+func (c HomeController) GetIndex() http.HandlerFunc {
+	return TemplateHandler(c.tm, "home/index", nil)
 }
 
-func (c HomeController) PostSignIn(tm *views.TemplateManager) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (c HomeController) GetSignIn() http.HandlerFunc {
+	return TemplateHandler(c.tm, "home/signin", nil)
+}
 
+func (c HomeController) GetSignUp() http.HandlerFunc {
+	return TemplateHandler(c.tm, "home/signup", nil)
+}
+
+func (c HomeController) PostSignUp(form map[string][]string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte(r.PostForm.Get("password")), bcrypt.DefaultCost)
+
+		user := models.User{
+			FirstName:    r.PostForm.Get("firstName"),
+			LastName:     r.PostForm.Get("lastName"),
+			Email:        strings.ToLower(r.PostForm.Get("email")),
+			PasswordHash: string(hashedBytes),
+		}
+
+		c.svc.SignUp(r.Context(), user)
 	}
 }
 

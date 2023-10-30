@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/devinmiller/web-dev-with-go/controllers"
+	"github.com/devinmiller/web-dev-with-go/services"
 	"github.com/devinmiller/web-dev-with-go/templates"
 	"github.com/devinmiller/web-dev-with-go/views"
 	"github.com/go-chi/chi/v5"
@@ -35,7 +35,7 @@ func initDatabase(uri string) (client *mongo.Client, err error) {
 	return
 }
 
-func endConnection(client *mongo.Client) {
+func termDatabase(client *mongo.Client) {
 	fmt.Println("Disconnecting from database...")
 
 	if err := client.Disconnect(context.Background()); err != nil {
@@ -46,12 +46,13 @@ func endConnection(client *mongo.Client) {
 func main() {
 	fmt.Println("Starting server on :3000...")
 
-	client, err := initDatabase(os.Getenv("MONGODB_URI"))
+	//client, err := initDatabase(os.Getenv("MONGODB_URI"))
+	client, err := initDatabase("mongodb+srv://dmiller:KU8KIen9EgGbB1Bx@flashy.0ykbt7t.mongodb.net/")
 	if err != nil {
 		panic(err)
 	}
 
-	defer endConnection(client)
+	defer termDatabase(client)
 
 	r := chi.NewRouter()
 
@@ -62,7 +63,7 @@ func main() {
 		panic(err)
 	}
 
-	r.Mount("/", controllers.HomeController{}.Routes(tm))
+	r.Mount("/", controllers.NewHomeController(tm, services.NewUserService(client)).Routes())
 
 	// Set up static file server for assets
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("dist"))))

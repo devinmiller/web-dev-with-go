@@ -33,7 +33,7 @@ func NewTemplateManager(fs embed.FS, dir string, layoutDir string, ext string) (
 
 	tmpl.templates = make(map[string]*template.Template)
 
-	if err := tmpl.Load(); err != nil {
+	if err = tmpl.Load(); err != nil {
 		tmpl = nil
 	}
 
