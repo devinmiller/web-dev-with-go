@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/devinmiller/web-dev-with-go/controllers"
@@ -46,8 +47,7 @@ func termDatabase(client *mongo.Client) {
 func main() {
 	fmt.Println("Starting server on :3000...")
 
-	//client, err := initDatabase(os.Getenv("MONGODB_URI"))
-	client, err := initDatabase("mongodb+srv://dmiller:KU8KIen9EgGbB1Bx@flashy.0ykbt7t.mongodb.net/")
+	client, err := initDatabase(os.Getenv("MONGODB_URI"))
 	if err != nil {
 		panic(err)
 	}
