@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/devinmiller/web-dev-with-go/controllers"
 	models "github.com/devinmiller/web-dev-with-go/models/data"
 	"github.com/devinmiller/web-dev-with-go/services"
 	"github.com/devinmiller/web-dev-with-go/views"
@@ -37,12 +36,7 @@ func (c HomeController) Routes() chi.Router {
 	r.Get("/signin", c.GetSignIn())
 	r.Get("/signup", c.GetSignUp())
 
-	r.With(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-			next.ServeHTTP(w, r)
-		})
-	}).Post("/signup", controllers.FormHandler(c.PostSignUp))
+	r.Post("/signup", FormHandler(c.PostSignUp))
 
 	r.Get("/contact", TemplateHandler(c.tm, "home/contact", nil))
 	r.Get("/faq", c.FAQ(c.tm))
@@ -51,7 +45,9 @@ func (c HomeController) Routes() chi.Router {
 }
 
 func (c HomeController) GetIndex() http.HandlerFunc {
-	return TemplateHandler(c.tm, "home/index", nil)
+	return func(w http.ResponseWriter, r *http.Request) {
+		return TemplateHandler(c.tm, "home/index", nil)
+	}
 }
 
 func (c HomeController) GetSignIn() http.HandlerFunc {
