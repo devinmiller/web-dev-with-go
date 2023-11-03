@@ -13,6 +13,7 @@ import (
 	"github.com/devinmiller/web-dev-with-go/views"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/csrf"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -58,20 +59,26 @@ func main() {
 
 	defer termDatabase(client)
 
-	app := App{
-		client: client,
-	}
-
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
+
+	csrfMiddleware := csrf.Protect(
+		[]byte("3F5G6H78J9KLMN0P1QR2ST3UVW4XYZ5A"),
+		csrf.Secure(false),
+	)
+
+	r.Use(csrfMiddleware)
 
 	tm, err := views.NewTemplateManager(templates.FS, ".", "layouts", ".html")
 	if err != nil {
 		panic(err)
 	}
 
-	r.Mount("/", controllers.NewHomeController(tm, services.NewUserService(client)).Routes())
+	userService := services.NewUserService(client)
+	userController := controllers.NewHomeController(tm, userService)
+
+	r.Mount("/", userController.Routes())
 
 	// Set up static file server for assets
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("dist"))))

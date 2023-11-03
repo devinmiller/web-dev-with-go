@@ -96,6 +96,9 @@ func (t *TemplateManager) Load() (err error) {
 				}
 				return "/static/" + name // Fallback to non-hashed name
 			},
+			"csrfField": func() template.HTML {
+				return `<input type="hidden" />`
+			},
 		})
 
 		// parse the template and layouts

@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/devinmiller/web-dev-with-go/models"
-	models "github.com/devinmiller/web-dev-with-go/models/data"
 	"github.com/devinmiller/web-dev-with-go/services"
 	"github.com/devinmiller/web-dev-with-go/views"
 	"github.com/go-chi/chi/v5"
@@ -12,27 +11,28 @@ import (
 
 type HomeController struct {
 	views       *views.TemplateManager
-	userService services.UserService
+	userService *services.UserService
 }
 
 func NewHomeController(
-	tm *views.TemplateManager,
-	svc services.UserService) HomeController {
+	views *views.TemplateManager,
+	userService *services.UserService) HomeController {
 
 	c := HomeController{
-		views:       tm,
-		userService: svc,
+		views:       views,
+		userService: userService,
 	}
 
 	return c
 }
 
-func (c HomeController) Routes() chi.Router {
+func (c *HomeController) Routes() chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/", c.GetIndex)
 
 	r.Get("/signin", c.GetSignIn)
+	r.Post("/signin", c.PostSignIn)
 
 	r.Get("/signup", c.GetSignUp)
 	r.Post("/signup", c.PostSignUp)
@@ -40,34 +40,56 @@ func (c HomeController) Routes() chi.Router {
 	return r
 }
 
-func (c HomeController) GetIndex(w http.ResponseWriter, r *http.Request) {
+func (c *HomeController) GetIndex(w http.ResponseWriter, r *http.Request) {
 	if err := c.views.RenderView(w, "home/index"); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (c HomeController) GetSignIn(w http.ResponseWriter, r *http.Request) {
+func (c *HomeController) GetSignIn(w http.ResponseWriter, r *http.Request) {
 	if err := c.views.RenderView(w, "home/signin"); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (c HomeController) PostSignIn(w http.ResponseWriter, r *http.Request) {
+func (c *HomeController) PostSignIn(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	form := models.SignInForm{
+		Email:    r.PostForm.Get("email"),
+		Password: r.PostForm.Get("password"),
+	}
+
+	user, err := c.userService.SignIn(r.Context(), form)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	cookie := http.Cookie{
+		Name:     "flashy",
+		Value:    user.Email,
+		Path:     "/",
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, &cookie)
+
 }
 
-func (c HomeController) GetSignUp(w http.ResponseWriter, r *http.Request) {
+func (c *HomeController) GetSignUp(w http.ResponseWriter, r *http.Request) {
 	if err := c.views.RenderView(w, "home/signup"); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (c HomeController) PostSignUp(w http.ResponseWriter, r *http.Request) {
+func (c *HomeController) PostSignUp(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 
 	if err != nil {
@@ -75,14 +97,14 @@ func (c HomeController) PostSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := models.SignUpForm{
+	form := models.SignUpForm{
 		FirstName: r.PostForm.Get("firstName"),
 		LastName:  r.PostForm.Get("lastName"),
 		Email:     r.PostForm.Get("email"),
 		Password:  r.PostForm.Get("password"),
 	}
 
-	err = c.userService.SignUp(r.Context(), user)
+	err = c.userService.SignUp(r.Context(), form)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

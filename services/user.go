@@ -2,39 +2,53 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/devinmiller/web-dev-with-go/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserService interface {
-	SignUp(ctx context.Context, form models.SignUpForm) error
-}
+// type UserService interface {
+// 	SignIn(ctx context.Context, form models.SignInForm) (*models.User, error)
+// 	SignUp(ctx context.Context, form models.SignUpForm) error
+// }
 
-type userService struct {
+type UserService struct {
 	client *mongo.Client
 }
 
-func NewUserService(client *mongo.Client) *userService {
-	return &userService{
+func NewUserService(client *mongo.Client) *UserService {
+	return &UserService{
 		client: client,
 	}
 }
 
-func (s *userService) SignIn(ctx context.Context, userEmail string) (user models.User, err error) {
+func (s *UserService) SignIn(ctx context.Context, form models.SignInForm) (*models.User, error) {
 	users := s.client.Database("flashy").Collection("users")
 
-	filter := bson.D{{Key: "email", Value: userEmail}}
+	filter := bson.D{{Key: "email", Value: form.Email}}
 
-	err = users.FindOne(ctx, filter).Decode(&user)
+	var user models.User
+	err := users.FindOne(ctx, filter).Decode(&user)
 
-	return
+	if err != nil {
+		return nil, fmt.Errorf("authentication failure: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(form.Password))
+
+	if err != nil {
+		return nil, fmt.Errorf("authentication failure: %w", err)
+	}
+
+	return &user, nil
 }
 
-func (s *userService) SignUp(ctx context.Context, form models.SignUpForm) error {
+func (s *UserService) SignUp(ctx context.Context, form models.SignUpForm) error {
 	users := s.client.Database("flashy").Collection("users")
 
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(form.Password), bcrypt.DefaultCost)
@@ -44,6 +58,7 @@ func (s *userService) SignUp(ctx context.Context, form models.SignUpForm) error 
 	}
 
 	user := models.User{
+		Id:           primitive.NewObjectID(),
 		FirstName:    form.FirstName,
 		LastName:     form.LastName,
 		Email:        strings.ToLower(form.Email),
