@@ -127,6 +127,10 @@ func (t *TemplateManager) Template(name string) (tmpl *template.Template, err er
 	return tmpl.Clone()
 }
 
+func (t *TemplateManager) RenderView(w io.Writer, name string) (err error) {
+	return t.Render(w, name, nil)
+}
+
 func (t *TemplateManager) Render(w io.Writer, name string, data interface{}) (err error) {
 
 	tmpl, err := t.Template(name)

@@ -2,13 +2,16 @@ package services
 
 import (
 	"context"
+	"strings"
 
-	models "github.com/devinmiller/web-dev-with-go/models/data"
+	"github.com/devinmiller/web-dev-with-go/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
-	SignUp(ctx context.Context, user models.User) error
+	SignUp(ctx context.Context, form models.SignUpForm) error
 }
 
 type userService struct {
@@ -21,14 +24,33 @@ func NewUserService(client *mongo.Client) *userService {
 	}
 }
 
-// func (s *UserService) SignIn() {
-
-// }
-
-func (s *userService) SignUp(ctx context.Context, user models.User) error {
+func (s *userService) SignIn(ctx context.Context, userEmail string) (user models.User, err error) {
 	users := s.client.Database("flashy").Collection("users")
 
-	_, err := users.InsertOne(ctx, user)
+	filter := bson.D{{Key: "email", Value: userEmail}}
+
+	err = users.FindOne(ctx, filter).Decode(&user)
+
+	return
+}
+
+func (s *userService) SignUp(ctx context.Context, form models.SignUpForm) error {
+	users := s.client.Database("flashy").Collection("users")
+
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(form.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return err
+	}
+
+	user := models.User{
+		FirstName:    form.FirstName,
+		LastName:     form.LastName,
+		Email:        strings.ToLower(form.Email),
+		PasswordHash: string(hashedBytes),
+	}
+
+	_, err = users.InsertOne(ctx, user)
 
 	if err != nil {
 		return err

@@ -44,6 +44,10 @@ func termDatabase(client *mongo.Client) {
 	}
 }
 
+type App struct {
+	client *mongo.Client
+}
+
 func main() {
 	fmt.Println("Starting server on :3000...")
 
@@ -53,6 +57,10 @@ func main() {
 	}
 
 	defer termDatabase(client)
+
+	app := App{
+		client: client,
+	}
 
 	r := chi.NewRouter()
 

@@ -9,3 +9,15 @@ type User struct {
 	Email        string             `bson:"email"`
 	PasswordHash string             `bson:"password_hash"`
 }
+
+type SignUpForm struct {
+	FirstName string
+	LastName  string
+	Email     string
+	Password  string
+}
+
+type SignInForm struct {
+	Email    string
+	Password string
+}

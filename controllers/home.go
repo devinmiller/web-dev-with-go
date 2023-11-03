@@ -2,18 +2,17 @@ package controllers
 
 import (
 	"net/http"
-	"strings"
 
+	"github.com/devinmiller/web-dev-with-go/models"
 	models "github.com/devinmiller/web-dev-with-go/models/data"
 	"github.com/devinmiller/web-dev-with-go/services"
 	"github.com/devinmiller/web-dev-with-go/views"
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type HomeController struct {
-	tm  *views.TemplateManager
-	svc services.UserService
+	views       *views.TemplateManager
+	userService services.UserService
 }
 
 func NewHomeController(
@@ -21,8 +20,8 @@ func NewHomeController(
 	svc services.UserService) HomeController {
 
 	c := HomeController{
-		tm:  tm,
-		svc: svc,
+		views:       tm,
+		userService: svc,
 	}
 
 	return c
@@ -31,62 +30,64 @@ func NewHomeController(
 func (c HomeController) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", c.GetIndex())
+	r.Get("/", c.GetIndex)
 
-	r.Get("/signin", c.GetSignIn())
-	r.Get("/signup", c.GetSignUp())
+	r.Get("/signin", c.GetSignIn)
 
-	r.Post("/signup", FormHandler(c.PostSignUp))
-
-	r.Get("/contact", TemplateHandler(c.tm, "home/contact", nil))
-	r.Get("/faq", c.FAQ(c.tm))
+	r.Get("/signup", c.GetSignUp)
+	r.Post("/signup", c.PostSignUp)
 
 	return r
 }
 
-func (c HomeController) GetIndex() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		return TemplateHandler(c.tm, "home/index", nil)
+func (c HomeController) GetIndex(w http.ResponseWriter, r *http.Request) {
+	if err := c.views.RenderView(w, "home/index"); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (c HomeController) GetSignIn() http.HandlerFunc {
-	return TemplateHandler(c.tm, "home/signin", nil)
-}
-
-func (c HomeController) GetSignUp() http.HandlerFunc {
-	return TemplateHandler(c.tm, "home/signup", nil)
-}
-
-func (c HomeController) PostSignUp(form map[string][]string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte(r.PostForm.Get("password")), bcrypt.DefaultCost)
-
-		user := models.User{
-			FirstName:    r.PostForm.Get("firstName"),
-			LastName:     r.PostForm.Get("lastName"),
-			Email:        strings.ToLower(r.PostForm.Get("email")),
-			PasswordHash: string(hashedBytes),
-		}
-
-		c.svc.SignUp(r.Context(), user)
+func (c HomeController) GetSignIn(w http.ResponseWriter, r *http.Request) {
+	if err := c.views.RenderView(w, "home/signin"); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (c HomeController) FAQ(tm *views.TemplateManager) http.HandlerFunc {
-	questions := []struct {
-		Question string
-		Answer   string
-	}{
-		{
-			Question: "Can you...",
-			Answer:   "No",
-		},
-		{
-			Question: "But...",
-			Answer:   "Still no",
-		},
+func (c HomeController) PostSignIn(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
+func (c HomeController) GetSignUp(w http.ResponseWriter, r *http.Request) {
+	if err := c.views.RenderView(w, "home/signup"); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (c HomeController) PostSignUp(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	return TemplateHandler(tm, "home/faq", questions)
+	user := models.SignUpForm{
+		FirstName: r.PostForm.Get("firstName"),
+		LastName:  r.PostForm.Get("lastName"),
+		Email:     r.PostForm.Get("email"),
+		Password:  r.PostForm.Get("password"),
+	}
+
+	err = c.userService.SignUp(r.Context(), user)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/signin", http.StatusFound)
 }
