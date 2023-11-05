@@ -4,12 +4,19 @@
     Sign In
 {{end}}
 
+{{define "header"}}
+    <nav>
+        <span class="nav__title">Flashy</span>
+    </nav>
+{{end}}
+
 {{define "main"}}
     <div class="form__wrapper">
         <div class="form__header">
-            Flashy Sign In
+            Sign In
         </div>
         <form action="/signin" method="POST">
+            {{.csrfField}}
             <div class="form__input">
                 <label for="email">Email</label>
                 <input name="email" id="email" type="email" placeholder="name@email.com" autocomplete="email" required />

@@ -96,9 +96,6 @@ func (t *TemplateManager) Load() (err error) {
 				}
 				return "/static/" + name // Fallback to non-hashed name
 			},
-			"csrfField": func() template.HTML {
-				return `<input type="hidden" />`
-			},
 		})
 
 		// parse the template and layouts
@@ -131,10 +128,10 @@ func (t *TemplateManager) Template(name string) (tmpl *template.Template, err er
 }
 
 func (t *TemplateManager) RenderView(w io.Writer, name string) (err error) {
-	return t.Render(w, name, nil)
+	return t.RenderPage(w, name, nil)
 }
 
-func (t *TemplateManager) Render(w io.Writer, name string, data interface{}) (err error) {
+func (t *TemplateManager) RenderPage(w io.Writer, name string, data interface{}) (err error) {
 
 	tmpl, err := t.Template(name)
 

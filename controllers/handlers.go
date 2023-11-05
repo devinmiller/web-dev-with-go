@@ -22,7 +22,7 @@ func FormHandler(f func(map[string][]string) http.HandlerFunc) http.HandlerFunc 
 
 func TemplateHandler(tm *views.TemplateManager, name string, data interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := tm.Render(w, name, data); err != nil {
+		if err := tm.RenderPage(w, name, data); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

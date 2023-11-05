@@ -7,6 +7,7 @@ import (
 	"github.com/devinmiller/web-dev-with-go/services"
 	"github.com/devinmiller/web-dev-with-go/views"
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/csrf"
 )
 
 type HomeController struct {
@@ -47,7 +48,12 @@ func (c *HomeController) GetIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *HomeController) GetSignIn(w http.ResponseWriter, r *http.Request) {
-	if err := c.views.RenderView(w, "home/signin"); err != nil {
+	// TODO: Improve CSRF handling
+	templateData := map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(r),
+	}
+
+	if err := c.views.RenderPage(w, "home/signin", templateData); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -84,7 +90,12 @@ func (c *HomeController) PostSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *HomeController) GetSignUp(w http.ResponseWriter, r *http.Request) {
-	if err := c.views.RenderView(w, "home/signup"); err != nil {
+	// TODO: Improve CSRF handling
+	templateData := map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(r),
+	}
+
+	if err := c.views.RenderPage(w, "home/signup", templateData); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

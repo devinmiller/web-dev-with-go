@@ -59,21 +59,28 @@ func main() {
 
 	defer termDatabase(client)
 
+	tm, err := views.NewTemplateManager(templates.FS, ".", "layouts", ".html")
+	if err != nil {
+		panic(err)
+	}
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
 
 	csrfMiddleware := csrf.Protect(
+		// TODO: Store session key literally anywhere else
 		[]byte("3F5G6H78J9KLMN0P1QR2ST3UVW4XYZ5A"),
+		// TODO: Make this jank website secure
 		csrf.Secure(false),
 	)
 
 	r.Use(csrfMiddleware)
-
-	tm, err := views.NewTemplateManager(templates.FS, ".", "layouts", ".html")
-	if err != nil {
-		panic(err)
-	}
+	r.Use(func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			h.ServeHTTP(w, r)
+		})
+	})
 
 	userService := services.NewUserService(client)
 	userController := controllers.NewHomeController(tm, userService)

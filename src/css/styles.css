@@ -1,9 +1,12 @@
 :root {
-    --color-primary: darkslategray;
+    --color-primary: #606B73;
     --color-text-on-primary: beige;
-    --color-secondary: white;
-    --color-text-on-secondary: black;
+    --color-secondary: #FFFFFF;
+    --color-text-on-secondary: #000000;
     --color-label-on-secondary: darkgray;
+
+    --color-header-primary: #A69F95;
+    --color-text-on-header-primary: #000000;
   
     --color-text-on-confidence: white;
   
@@ -83,6 +86,20 @@
 
   .content {
     padding: 2rem;
+  }
+
+  nav {
+    align-items: center;
+    background-color: var(--color-header-primary);
+    color: var(--color-text-on-header-primary);
+    display: flex;
+    height: 4rem;
+    padding: 0 2rem;
+  }
+
+  .nav__title {
+    font-size: var(--h3);
+    font-weight: bold;
   }
 
   @import "./forms.css"
