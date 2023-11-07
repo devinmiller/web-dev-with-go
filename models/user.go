@@ -8,6 +8,7 @@ type User struct {
 	LastName     string             `bson:"last_name"`
 	Email        string             `bson:"email"`
 	PasswordHash string             `bson:"password_hash"`
+	SessionHash  string             `bson:"session_hash"`
 }
 
 type SignUpForm struct {

@@ -11,17 +11,20 @@ import (
 )
 
 type HomeController struct {
-	views       *views.TemplateManager
-	userService *services.UserService
+	views          *views.TemplateManager
+	userService    *services.UserService
+	sessionService *services.SessionService
 }
 
 func NewHomeController(
 	views *views.TemplateManager,
-	userService *services.UserService) HomeController {
+	userService *services.UserService,
+	sessionService *services.SessionService) HomeController {
 
 	c := HomeController{
-		views:       views,
-		userService: userService,
+		views:          views,
+		userService:    userService,
+		sessionService: sessionService,
 	}
 
 	return c
@@ -53,6 +56,7 @@ func (c *HomeController) GetSignIn(w http.ResponseWriter, r *http.Request) {
 		csrf.TemplateTag: csrf.TemplateField(r),
 	}
 
+	// TODO:
 	if err := c.views.RenderPage(w, "home/signin", templateData); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -86,7 +90,6 @@ func (c *HomeController) PostSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &cookie)
-
 }
 
 func (c *HomeController) GetSignUp(w http.ResponseWriter, r *http.Request) {
