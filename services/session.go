@@ -22,19 +22,14 @@ func NewSessionService(client *mongo.Client) *SessionService {
 }
 
 func (s SessionService) SignIn(w http.ResponseWriter, r *http.Request, user *models.User) error {
-	token, err := generateSessionToken()
+	token, err := s.genSessionToken()
 	if err != nil {
 		return fmt.Errorf("session sign in: %w", err)
 	}
 
-	cookieSession := http.Cookie{
-		Name:     CookieSession,
-		Value:    token,
-		Path:     "/",
-		HttpOnly: true,
-	}
-
 	http.SetCookie(w, &cookieSession)
+
+	user.SessionHash = s.hashSessionToken(token)
 
 	return nil
 }
@@ -42,7 +37,7 @@ func (s SessionService) SignIn(w http.ResponseWriter, r *http.Request, user *mod
 const SessionTokenBytes = 32
 const CookieSession = "FlashySession"
 
-func generateSessionToken() (string, error) {
+func (s SessionService) genSessionToken() (string, error) {
 	b := make([]byte, SessionTokenBytes)
 
 	_, err := rand.Read(b)
@@ -54,9 +49,20 @@ func generateSessionToken() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-func hashSessionToken(token string) string {
+func (s SessionService) hashSessionToken(token string) string {
 	// create the hash from the token
 	tokenHash := sha256.Sum256([]byte(token))
 	// convert to encoded string and return
 	return base64.URLEncoding.EncodeToString(tokenHash[:])
+}
+
+func (s SessionService) setCookie(name, token string) *http.Cookie {
+	cookie := http.Cookie{
+		Name:     name,
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+	}
+
+	return &cookie
 }
