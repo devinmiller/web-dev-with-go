@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/devinmiller/web-dev-with-go/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,12 +29,15 @@ func (s SessionService) SignIn(w http.ResponseWriter, r *http.Request, user *mod
 		return fmt.Errorf("session sign in: %w", err)
 	}
 
-	http.SetCookie(w, &cookieSession)
-
+	// Set the cookie with the generated token
+	http.SetCookie(w, s.setCookie(CookieSession, token))
+	// Update the user with the token hash
 	user.SessionHash = s.hashSessionToken(token)
 
 	return nil
 }
+
+func (s SessionService) SignOut(w http.ResponseWriter, r *http.Request)
 
 const SessionTokenBytes = 32
 const CookieSession = "FlashySession"
@@ -65,4 +70,25 @@ func (s SessionService) setCookie(name, token string) *http.Cookie {
 	}
 
 	return &cookie
+}
+
+func (s SessionService) updateUser(ctx context.Context, id string, hash string) error {
+	users := s.client.Database("flashy").Collection("users")
+	filter := bson.D{{Key: "_id", Value: id}}
+	update := bson.D{
+		{
+			Key: "$set",
+			Value: bson.D{
+				{Key: "session_hash", Value: hash},
+			},
+		},
+	}
+
+	result, err := users.UpdateOne(ctx, filter, update)
+
+	if err != nil {
+		return fmt.Errorf("set session hash: %w", err)
+	}
+
+	return nil
 }

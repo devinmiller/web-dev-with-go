@@ -82,6 +82,8 @@ func (c *HomeController) PostSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = c.sessionService.SignIn(w, r, user)
+
 	cookie := http.Cookie{
 		Name:     "flashy",
 		Value:    user.Email,

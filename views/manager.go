@@ -23,6 +23,7 @@ type TemplateManager struct {
 	templates map[string]*template.Template
 }
 
+// TODO: Look into using an options struct for configuration
 func NewTemplateManager(fs embed.FS, dir string, layoutDir string, ext string) (tmpl *TemplateManager, err error) {
 	tmpl = &TemplateManager{
 		fs:        fs,
@@ -125,6 +126,10 @@ func (t *TemplateManager) Template(name string) (tmpl *template.Template, err er
 	}
 
 	return tmpl.Clone()
+}
+
+func (t *TemplateManager) TemplateFunc(name string, funcMap template.FuncMap) {
+
 }
 
 func (t *TemplateManager) RenderView(w io.Writer, name string) (err error) {
