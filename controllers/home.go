@@ -84,14 +84,12 @@ func (c *HomeController) PostSignIn(w http.ResponseWriter, r *http.Request) {
 
 	err = c.sessionService.SignIn(w, r, user)
 
-	cookie := http.Cookie{
-		Name:     "flashy",
-		Value:    user.Email,
-		Path:     "/",
-		HttpOnly: true,
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	http.SetCookie(w, &cookie)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func (c *HomeController) GetSignUp(w http.ResponseWriter, r *http.Request) {

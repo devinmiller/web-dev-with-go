@@ -12,11 +12,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// type UserService interface {
-// 	SignIn(ctx context.Context, form models.SignInForm) (*models.User, error)
-// 	SignUp(ctx context.Context, form models.SignUpForm) error
-// }
-
 type UserService struct {
 	client *mongo.Client
 }

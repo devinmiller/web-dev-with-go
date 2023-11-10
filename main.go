@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/devinmiller/web-dev-with-go/controllers"
@@ -52,7 +51,7 @@ type App struct {
 func main() {
 	fmt.Println("Starting server on :3000...")
 
-	client, err := initDatabase(os.Getenv("MONGODB_URI"))
+	client, err := initDatabase("mongodb://mongo_user:mongo_password@localhost:27017")
 	if err != nil {
 		panic(err)
 	}
@@ -83,7 +82,8 @@ func main() {
 	})
 
 	userService := services.NewUserService(client)
-	userController := controllers.NewHomeController(tm, userService)
+	sessionService := services.NewSessionService(client)
+	userController := controllers.NewHomeController(tm, userService, sessionService)
 
 	r.Mount("/", userController.Routes())
 
