@@ -10,6 +10,7 @@ import (
 
 	"github.com/devinmiller/web-dev-with-go/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -32,7 +33,7 @@ func (s SessionService) SignIn(w http.ResponseWriter, r *http.Request, user *mod
 	// Hash the session token
 	hash := s.hashSessionToken(token)
 	// Set hashed session token
-	err = s.setSession(r.Context(), user.Id.String(), hash)
+	err = s.setSession(r.Context(), user.Id.Hex(), hash)
 	if err != nil {
 		return fmt.Errorf("session sign in: %w", err)
 	}
@@ -117,8 +118,13 @@ func (s SessionService) setCookie(w http.ResponseWriter, name string, token stri
 
 func (s SessionService) setSession(ctx context.Context, userId string, hash string) error {
 	users := s.client.Database("flashy").Collection("users")
+
+	objectId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return fmt.Errorf("set session hash: %w", err)
+	}
 	// Set filter to user id
-	filter := bson.D{{Key: "_id", Value: userId}}
+	filter := bson.D{{Key: "_id", Value: objectId}}
 	// Set session has on user with id
 	update := bson.D{
 		{
