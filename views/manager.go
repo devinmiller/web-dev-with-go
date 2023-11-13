@@ -154,3 +154,5 @@ func (t *TemplateManager) RenderPage(w io.Writer, name string, data interface{})
 
 	return
 }
+
+func (t *TemplateManager) RenderTemplate()

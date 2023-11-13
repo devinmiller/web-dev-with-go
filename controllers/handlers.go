@@ -28,3 +28,19 @@ func TemplateHandler(tm *views.TemplateManager, name string, data interface{}) h
 		}
 	}
 }
+
+func (app Application) ViewHandler(name string, f func(r *http.Request)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl, err := app.tm.Template(name)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		f(r)
+	}
+}
+
+type Application struct {
+	tm *views.TemplateManager
+}
