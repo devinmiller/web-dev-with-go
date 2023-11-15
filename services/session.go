@@ -14,6 +14,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+const SessionTokenBytes = 32
+const CookieSession = "FlashySession"
+
 type SessionService struct {
 	client *mongo.Client
 }
@@ -81,9 +84,6 @@ func (s SessionService) SignOut(w http.ResponseWriter, r *http.Request) error {
 
 	return nil
 }
-
-const SessionTokenBytes = 32
-const CookieSession = "FlashySession"
 
 func (s SessionService) getSessionToken() (string, error) {
 	b := make([]byte, SessionTokenBytes)

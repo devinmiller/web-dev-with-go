@@ -56,7 +56,7 @@ func (t *TemplateManager) Load() (err error) {
 
 	var assetManifest map[string]string
 	// Load asset manifest
-	manifestFile, _ := os.ReadFile("dist/asset-manifest.json")
+	manifestFile, _ := os.ReadFile("../../dist/asset-manifest.json")
 
 	json.Unmarshal(manifestFile, &assetManifest)
 
@@ -118,7 +118,7 @@ func (t *TemplateManager) Load() (err error) {
 	return
 }
 
-func (t *TemplateManager) Template(name string) (tmpl *template.Template, err error) {
+func (t *TemplateManager) Template(name string) (*template.Template, error) {
 	tmpl, exists := t.templates[name]
 
 	if !exists {
@@ -132,11 +132,11 @@ func (t *TemplateManager) TemplateFunc(name string, funcMap template.FuncMap) {
 
 }
 
-func (t *TemplateManager) RenderView(w io.Writer, name string) (err error) {
+func (t *TemplateManager) RenderView(w io.Writer, name string) error {
 	return t.RenderPage(w, name, nil)
 }
 
-func (t *TemplateManager) RenderPage(w io.Writer, name string, data interface{}) (err error) {
+func (t *TemplateManager) RenderPage(w io.Writer, name string, data interface{}) error {
 
 	tmpl, err := t.Template(name)
 
@@ -144,15 +144,26 @@ func (t *TemplateManager) RenderPage(w io.Writer, name string, data interface{})
 		return err
 	}
 
-	buf := bytes.Buffer{}
-
-	if err = tmpl.ExecuteTemplate(&buf, tmpl.Name(), data); err != nil {
+	buf, err := t.RenderTemplate(tmpl, data)
+	if err != nil {
 		return fmt.Errorf("error executing template: %w", err)
 	}
 
-	_, err = w.Write(buf.Bytes())
+	_, err = w.Write(buf)
+	if err != nil {
+		return fmt.Errorf("error writing template: %w", err)
+	}
 
-	return
+	return nil
 }
 
-func (t *TemplateManager) RenderTemplate()
+func (t *TemplateManager) RenderTemplate(tmpl *template.Template, data interface{}) ([]byte, error) {
+	buf := bytes.Buffer{}
+
+	err := tmpl.ExecuteTemplate(&buf, tmpl.Name(), data)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return buf.Bytes(), nil
+}

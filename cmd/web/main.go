@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/devinmiller/web-dev-with-go/controllers"
 	"github.com/devinmiller/web-dev-with-go/services"
 	"github.com/devinmiller/web-dev-with-go/templates"
 	"github.com/devinmiller/web-dev-with-go/views"
@@ -44,8 +43,10 @@ func termDatabase(client *mongo.Client) {
 	}
 }
 
-type App struct {
-	client *mongo.Client
+type application struct {
+	views          *views.TemplateManager
+	userService    *services.UserService
+	sessionService *services.SessionService
 }
 
 func main() {
@@ -63,9 +64,16 @@ func main() {
 		panic(err)
 	}
 
+	application := application{
+		views:          tm,
+		userService:    services.NewUserService(client),
+		sessionService: services.NewSessionService(client),
+	}
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
+	r.Use(application.CurrentUser)
 
 	csrfMiddleware := csrf.Protect(
 		// TODO: Store session key literally anywhere else
@@ -75,17 +83,9 @@ func main() {
 	)
 
 	r.Use(csrfMiddleware)
-	r.Use(func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			h.ServeHTTP(w, r)
-		})
-	})
+	r.Use()
 
-	userService := services.NewUserService(client)
-	sessionService := services.NewSessionService(client)
-	userController := controllers.NewHomeController(tm, userService, sessionService)
-
-	r.Mount("/", userController.Routes())
+	r.Mount("/", application.HomeRoutes())
 
 	// Set up static file server for assets
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("dist"))))

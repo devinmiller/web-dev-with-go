@@ -5,24 +5,23 @@ import (
 
 	"github.com/devinmiller/web-dev-with-go/models"
 	"github.com/devinmiller/web-dev-with-go/services"
-	"github.com/devinmiller/web-dev-with-go/views"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
 )
 
 type HomeController struct {
-	views          *views.TemplateManager
+	controller     *Controller
 	userService    *services.UserService
 	sessionService *services.SessionService
 }
 
 func NewHomeController(
-	views *views.TemplateManager,
+	controller *Controller,
 	userService *services.UserService,
 	sessionService *services.SessionService) HomeController {
 
 	c := HomeController{
-		views:          views,
+		controller:     controller,
 		userService:    userService,
 		sessionService: sessionService,
 	}
@@ -45,7 +44,7 @@ func (c *HomeController) Routes() chi.Router {
 }
 
 func (c *HomeController) GetIndex(w http.ResponseWriter, r *http.Request) {
-	if err := c.views.RenderView(w, "home/index"); err != nil {
+	if err := c.controller.views.RenderView(w, "home/index"); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -57,7 +56,7 @@ func (c *HomeController) GetSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO:
-	if err := c.views.RenderPage(w, "home/signin", templateData); err != nil {
+	if err := c.controller.views.RenderPage(w, "home/signin", templateData); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -98,7 +97,7 @@ func (c *HomeController) GetSignUp(w http.ResponseWriter, r *http.Request) {
 		csrf.TemplateTag: csrf.TemplateField(r),
 	}
 
-	if err := c.views.RenderPage(w, "home/signup", templateData); err != nil {
+	if err := c.controller.views.RenderPage(w, "home/signup", templateData); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
