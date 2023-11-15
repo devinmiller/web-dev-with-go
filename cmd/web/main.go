@@ -46,12 +46,11 @@ func termDatabase(client *mongo.Client) {
 type application struct {
 	views          *views.TemplateManager
 	userService    *services.UserService
+	classService   *services.ClassService
 	sessionService *services.SessionService
 }
 
 func main() {
-	fmt.Println("Starting server on :3000...")
-
 	client, err := initDatabase("mongodb://mongo_user:mongo_password@localhost:27017")
 	if err != nil {
 		panic(err)
@@ -67,6 +66,7 @@ func main() {
 	application := application{
 		views:          tm,
 		userService:    services.NewUserService(client),
+		classService:   services.NewClassService(client),
 		sessionService: services.NewSessionService(client),
 	}
 
@@ -83,9 +83,9 @@ func main() {
 	)
 
 	r.Use(csrfMiddleware)
-	r.Use()
 
 	r.Mount("/", application.HomeRoutes())
+	r.Mount("/class", application.ClassRoutes())
 
 	// Set up static file server for assets
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("dist"))))
@@ -93,6 +93,8 @@ func main() {
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})
+
+	fmt.Println("Starting server on :3000...")
 
 	err = http.ListenAndServe(":3000", r)
 

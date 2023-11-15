@@ -56,7 +56,7 @@ func (t *TemplateManager) Load() (err error) {
 
 	var assetManifest map[string]string
 	// Load asset manifest
-	manifestFile, _ := os.ReadFile("../../dist/asset-manifest.json")
+	manifestFile, _ := os.ReadFile("dist/asset-manifest.json")
 
 	json.Unmarshal(manifestFile, &assetManifest)
 
@@ -97,6 +97,12 @@ func (t *TemplateManager) Load() (err error) {
 				}
 				return "/static/" + name // Fallback to non-hashed name
 			},
+			"csrfField": func() (template.HTML, error) {
+				return "", fmt.Errorf("csrfField not defined")
+			},
+			"currentUser": func() (template.HTML, error) {
+				return "", fmt.Errorf("currentUser not defined")
+			},
 		})
 
 		// parse the template and layouts
@@ -126,10 +132,6 @@ func (t *TemplateManager) Template(name string) (*template.Template, error) {
 	}
 
 	return tmpl.Clone()
-}
-
-func (t *TemplateManager) TemplateFunc(name string, funcMap template.FuncMap) {
-
 }
 
 func (t *TemplateManager) RenderView(w io.Writer, name string) error {

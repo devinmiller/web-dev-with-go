@@ -1,0 +1,16 @@
+nav {
+    display: flex;
+    justify-content: space-between;
+}
+
+.nav__greeting {
+    display: flex;
+    align-items: center;
+}
+
+.nav__dashboard,
+.nav__logout {
+    height: 2rem;
+    display: inline-block;
+    width: 2rem;
+}

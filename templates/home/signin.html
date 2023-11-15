@@ -16,7 +16,7 @@
             Sign In
         </div>
         <form action="/signin" method="POST">
-            {{.csrfField}}
+            {{ csrfField }}
             <div class="form__input">
                 <label for="email">Email</label>
                 <input name="email" id="email" type="email" placeholder="name@email.com" autocomplete="email" required />

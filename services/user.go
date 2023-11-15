@@ -58,6 +58,7 @@ func (s *UserService) SignUp(ctx context.Context, form models.SignUpForm) error 
 		LastName:     form.LastName,
 		Email:        strings.ToLower(form.Email),
 		PasswordHash: string(hashedBytes),
+		Classes:      make([]models.Class, 0),
 	}
 
 	_, err = users.InsertOne(ctx, user)

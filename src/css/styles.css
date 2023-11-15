@@ -102,4 +102,5 @@
     font-weight: bold;
   }
 
-  @import "./forms.css"
+  @import "./forms.css";
+  @import "./dashboard.css";
